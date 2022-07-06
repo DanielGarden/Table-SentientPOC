@@ -1,0 +1,48 @@
+* {
+    box-sizing: border-box;
+    color: #eee
+}
+
+body {
+    background: #222;
+    color: #eee
+}
+
+.Table {
+    display: table;
+    width: 150%;
+    /* border-collapse: collapse; */
+    table-layout: fixed;
+}
+.Table-Row {
+    display: table-row;
+}
+.Table-Body {
+    display: table-row-group
+}
+.Table-Header {
+    display: table-header-group;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+.Table-Footer {
+    font-weight: 500;
+    display: table-footer-group
+}
+.Table-Cell {
+    display: table-cell;
+    color: #eee;
+    border: 1px solid #eee;
+    text-align: center;
+    padding: 5px;
+    background: #222;
+}
+.Table-Header .Table-Cell span {
+    writing-mode:  vertical-lr;
+    transform: rotate(180deg);
+}
+.sticky {
+    position: sticky;
+}
