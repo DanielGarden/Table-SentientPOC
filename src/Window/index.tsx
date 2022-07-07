@@ -13,7 +13,6 @@ const windowHeight = 400
 export const Window: React.FC<WindowProps> = ({ rowHeight = 28, totalItems = 400, RowRender, children }) => {
     const windowRef = useRef(null)
     const [[startInd, endInd], setCurrentRange] = useState([0, Math.ceil( windowHeight / rowHeight)])
-
     const onScroll = useCallback((e) => {
         let firstInd = Math.floor(e.target.scrollTop / rowHeight) - 5
         let lastInd = Math.ceil((e.target.scrollTop + windowHeight) / rowHeight) + 5

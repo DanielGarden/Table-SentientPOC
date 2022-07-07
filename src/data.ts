@@ -103,6 +103,7 @@ export const columns: ColumnDef<Person>[] = [
     {
         header: 'Info',
         footer: props => props.column.id,
+        size: 400,
         columns: [
             {
                 accessorKey: 'age',
