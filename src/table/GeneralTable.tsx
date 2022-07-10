@@ -1,18 +1,18 @@
+import styled from '@emotion/styled'
 import {
-
+    getGroupedRowModel,
     flexRender,
     getCoreRowModel,
     getSortedRowModel,
+    GroupingState,
     SortingState,
     useReactTable,
     VisibilityState
 } from '@tanstack/react-table'
-import { FixedSizeList } from 'react-window'
+import { useCallback, useState } from 'react'
 import { columns, defaultData } from '../data'
-import { Table, TableBody, TableCell as _TableCell, TableFooter, TableHeader, TableRow as _TableRow } from './Table'
-import styled from '@emotion/styled'
-import { useState, useCallback, useMemo } from 'react'
 import { Window } from '../Window'
+import { Table, TableBody, TableCell as _TableCell, TableFooter, TableHeader, TableRow as _TableRow } from './Table'
 
 
 type TableCellProps = {
@@ -24,8 +24,7 @@ type TableCellProps = {
 
 const TableCell = styled(_TableCell)(({ width, issticky, leftpos, colSpan }: TableCellProps) => {
     return {
-        // width: width ? `${width}px` : undefined,
-        // width: "100%",
+        gridColumn: `span ${colSpan}`,
         position: issticky ? 'sticky' : 'static',
         zIndex: issticky ? 5 : undefined,
         left: leftpos != null && issticky ? `${leftpos}px` : undefined,
@@ -43,12 +42,14 @@ const TableRow = styled(_TableRow)(({ issticky, toppos, columnSizes }: TableRowP
     gridTemplateColumns: columnSizes.reduce((sizes, column) => sizes += `${column}px `, "")
 }))
 
-const pinRows = 2
-const ddata = Array(2000).fill(null).reduce((bigArr, littleArr) => bigArr.concat(defaultData),[])
+const pinRows = 0
+const ddata = Array(3).fill(null).reduce((bigArr, littleArr) => bigArr.concat(defaultData),[])
 
 export const GeneralTable = () => {
     const [data, setData] = useState([...ddata, ...ddata, ...ddata])
     const [sorting, setSorting] = useState<SortingState>([]);
+    const [grouping, setGrouping] = useState<GroupingState>(['visits', 'status'])
+
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
         age: false
     })
@@ -60,22 +61,26 @@ export const GeneralTable = () => {
         getFooterGroups,
         getState,
         getTotalSize,
+        getGroupedRowModel: test
+        // getGroupedRowModel,
     } = useReactTable({
         data,
         columns,
         columnResizeMode: 'onChange',
-        state: { sorting, columnVisibility },
+        state: { sorting, columnVisibility, grouping },
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
+        getGroupedRowModel: getGroupedRowModel(),
         onSortingChange: setSorting,
+        groupedColumnMode: undefined 
     })
 
-    console.log(getAllColumns())
+    // console.log(getGroupedRowModel())
 
-    const rows = getRowModel().rows.slice(pinRows)
-
-    const columnSizes = rows[1].getVisibleCells().map(cell => cell.column.getSize() || 0, [])
-
+    const rows = getRowModel().flatRows.slice(pinRows)
+    console.log(test())
+    const columnSizes = rows[3].getVisibleCells().map(cell => cell.column.getSize() || 0, [])
+    // console.table(rows.map(r => r.getVisibleCells().map(c => ({value: c.getContext().getValue(), isGrouped: c.getIsGrouped(), agg: c.getIsAggregated()}))))
     const RenderRow = useCallback(({ index, style }) => {
         const row = rows[index]
         return (
@@ -88,7 +93,7 @@ export const GeneralTable = () => {
                         width={cell.column.columnDef.size}
                         
                     >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())} {cell.getIsGrouped()}
                         {/* {console.log(getState())} */}
                     </TableCell>
                 ))}
@@ -109,7 +114,6 @@ export const GeneralTable = () => {
                                     width={header.column.getSize()}
 
                                 >
-                                    {console.log(header.column.id)}
                                     <button
                                         onMouseDown={header.getResizeHandler()}
                                         onTouchStart={header.getResizeHandler()}
@@ -140,7 +144,7 @@ export const GeneralTable = () => {
                             ))}
                         </TableRow>
                     ))}
-                    {getRowModel().rows.slice(0, pinRows).map((row, ri) => (
+                    {getRowModel().flatRows.slice(0, pinRows).map((row, ri) => (
 
                         <TableRow key={row.id} issticky={false} columnSizes={columnSizes}>
                             {row.getVisibleCells().map((cell, i) => (
@@ -159,15 +163,7 @@ export const GeneralTable = () => {
                     ))}
                 </TableHeader>
                 <TableBody>
-                    {/* <FixedSizeList
-                        height={400}
-                        itemCount={getRowModel().rows.slice(pinRows).length}
-                        itemSize={28}
-                        width={"calc(100% + 1.5em)"}
-                    >
-                        {RenderRow}
-                    </FixedSizeList> */}
-                    <Window RowRender={RenderRow} totalItems={getRowModel().rows.slice(pinRows).length}/>
+                    <Window RowRender={RenderRow} totalItems={getRowModel().flatRows.slice(pinRows).length}/>
                 </TableBody>
                 <TableFooter>
                     {getFooterGroups().map(footerGroup => (

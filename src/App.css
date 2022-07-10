@@ -10,9 +10,9 @@ body {
 .Window {
     overflow: auto;
     height: 400px;
+    will-change: transform
 }
 .Window-inner {
-    
 }
 /* .Table {
     display: table;
