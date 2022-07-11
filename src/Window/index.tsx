@@ -11,15 +11,16 @@ export type WindowProps = {
 const windowHeight = 400
 
 export const Window: React.FC<WindowProps> = ({ rowHeight = 28, totalItems = 400, RowRender, children }) => {
-    const windowRef = useRef(null)
+    const windowRef = useRef<HTMLDivElement>(null)
     const [[startInd, endInd], setCurrentRange] = useState([0, Math.ceil(windowHeight / rowHeight)])
+    
     const onScroll = useCallback((e) => {
         let firstInd = Math.floor(e.target.scrollTop / rowHeight) - 5
         let lastInd = Math.ceil((e.target.scrollTop + windowHeight) / rowHeight) + 5
         if (firstInd < 0) firstInd = 0
         if (lastInd > totalItems - 1) lastInd = totalItems - 1
         if (startInd !== firstInd || endInd !== lastInd) setCurrentRange([firstInd, lastInd])
-    }, [])
+    }, [totalItems, rowHeight])
 
     useEffect(() => {
         const ele = windowRef.current
@@ -27,7 +28,7 @@ export const Window: React.FC<WindowProps> = ({ rowHeight = 28, totalItems = 400
 
         return () => ele?.removeEventListener('scroll', onScroll)
     }, [onScroll])
-
+    console.log(endInd - startInd)
     return (
         <div className="Window" ref={windowRef} >
             <div className="Window-inner" style={{ height: `${totalItems * rowHeight}px`, paddingTop: `${startInd * rowHeight}px` }}>

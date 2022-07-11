@@ -12,6 +12,7 @@ import {
 import { useCallback, useState } from 'react'
 import { columns, defaultData } from '../data'
 import { Window } from '../Window'
+import { flattenGroupedRows } from './flattenGroupedRows'
 import { Table, TableBody, TableCell as _TableCell, TableFooter, TableHeader, TableRow as _TableRow } from './Table'
 
 
@@ -43,12 +44,12 @@ const TableRow = styled(_TableRow)(({ issticky, toppos, columnSizes }: TableRowP
 }))
 
 const pinRows = 0
-const ddata = Array(3).fill(null).reduce((bigArr, littleArr) => bigArr.concat(defaultData),[])
+const ddata = Array(1).fill(null).reduce((bigArr, littleArr) => bigArr.concat(defaultData), [])
 
 export const GeneralTable = () => {
     const [data, setData] = useState([...ddata, ...ddata, ...ddata])
     const [sorting, setSorting] = useState<SortingState>([]);
-    const [grouping, setGrouping] = useState<GroupingState>(['visits', 'status'])
+    const [grouping, setGrouping] = useState<GroupingState>(['status', 'visits'])
 
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
         age: false
@@ -72,32 +73,45 @@ export const GeneralTable = () => {
         getSortedRowModel: getSortedRowModel(),
         getGroupedRowModel: getGroupedRowModel(),
         onSortingChange: setSorting,
-        groupedColumnMode: undefined 
+        groupedColumnMode: undefined
     })
 
     // console.log(getGroupedRowModel())
 
-    const rows = getRowModel().flatRows.slice(pinRows)
-    console.log(test())
-    const columnSizes = rows[3].getVisibleCells().map(cell => cell.column.getSize() || 0, [])
+    const flattenedRows = flattenGroupedRows(getRowModel().rows)
+    const rows = flattenedRows.slice(pinRows)
+    console.log(rows.length)
+    // console.log(flattenedRows)
+    const columnSizes = rows[0].getVisibleCells().map(cell => cell.column.getSize() || 0, [])
     // console.table(rows.map(r => r.getVisibleCells().map(c => ({value: c.getContext().getValue(), isGrouped: c.getIsGrouped(), agg: c.getIsAggregated()}))))
-    const RenderRow = useCallback(({ index, style }) => {
+    const RenderRow = useCallback(({ index }) => {
         const row = rows[index]
+        if (!row) return <></>
+
         return (
-            <TableRow key={`${row.id}-${index}`} style={{ ...style }} columnSizes={columnSizes} data-testid={`row-${index}`}>
-                {row.getVisibleCells().map((cell, i) => (
-                    <TableCell
-                        key={cell.id}
-                        issticky={i < 2}
-                        leftpos={cell.column.getStart()}
-                        width={cell.column.columnDef.size}
-                        
-                    >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())} {cell.getIsGrouped()}
-                        {/* {console.log(getState())} */}
-                    </TableCell>
-                ))}
+            <TableRow
+                key={`${row.id}-${index}`}
+                // style={{ ...style }}
+                columnSizes={!row.getIsGrouped?.() ? columnSizes : []} data-testid={`row-${index}`}
+            >
+                {row.getIsGrouped?.() ?
+                    <button style={{ color: "#333" }} onClick={row.getToggleExpandedHandler()}>{row.groupingColumnId} : {row.groupingValue} </button>
+                    :
+                    row.getVisibleCells().map((cell, i) => (
+                        <TableCell
+                            key={cell.id}
+                            issticky={i < 2}
+                            leftpos={cell.column.getStart()}
+                            width={cell.column.columnDef.size}
+
+                        >
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            {/* {console.log(getState())} */}
+                        </TableCell>
+                    ))
+                }
             </TableRow>)
+
     }, [rows])
 
     return (
@@ -163,7 +177,7 @@ export const GeneralTable = () => {
                     ))}
                 </TableHeader>
                 <TableBody>
-                    <Window RowRender={RenderRow} totalItems={getRowModel().flatRows.slice(pinRows).length}/>
+                    <Window RowRender={RenderRow} totalItems={rows.length} />
                 </TableBody>
                 <TableFooter>
                     {getFooterGroups().map(footerGroup => (

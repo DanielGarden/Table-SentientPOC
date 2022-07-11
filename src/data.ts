@@ -116,7 +116,7 @@ export const columns: ColumnDef<Person>[] = [
                     {
                         accessorKey: 'visits',
                         header: () => "Visits",
-                        footer: props => props.table.getRowModel().rows.reduce((total, current) => total + current.getValue('visits'), 0),
+                        footer: props => props.table.getRowModel().flatRows.reduce((total, current) => current.getIsGrouped() ? total : total + current.getValue('visits'), 0),
                         size: 400
 
                     },
@@ -130,7 +130,7 @@ export const columns: ColumnDef<Person>[] = [
                     {
                         accessorKey: 'progress',
                         header: 'Profile Progress',
-                        footer: props => props.column.id,
+                        footer: '',
                         size: 400
 
                     },
